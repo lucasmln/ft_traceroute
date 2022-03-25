@@ -30,12 +30,12 @@ $(NAME) : $(OBJ)
 
 clean :
 	make -C libft clean
-	rm -f *.o
+	rm -f srcs/*.o
 
 fclean :
 	make -C libft fclean
-	rm -f *.o
-	rm ft_ping
+	rm -f srcs/*.o
+	rm ft_traceroute
 
 re :
 	make fclean
