@@ -12,7 +12,7 @@
 
 NAME = ft_traceroute
 
-SRC = main.c
+SRC = main.c packet.c parse.c utils.c socket.c
 
 DIR_SRC = ./srcs/
 
