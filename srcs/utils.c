@@ -9,6 +9,8 @@ void	free_traceroute()
 {
 	if (g_data.addr_ip)
 		free(g_data.addr_ip);
+	if (g_data.last_ip)
+		free(g_data.last_ip);
 	close(g_data.icmp_sock);
 	close(g_data.raw_sock);
 }
@@ -26,10 +28,11 @@ void	print_packet(int round, int ttl, struct timeval time, int code)
 {
 	double	time_value;
 	char	*new_addr;
-	char	*reverse_addr;
+	char	*reverse_addr = NULL;
 	static int	error = 0;
 
-	reverse_addr = reverse_dns_lookup(g_data.rcv);
+	if (!(g_data.flags & FLAGS_N))
+		reverse_addr = reverse_dns_lookup(g_data.rcv);
 	if (!reverse_addr)
 		reverse_addr = ft_strdup(inet_ntoa(g_data.rcv.sin_addr));
 	new_addr = ft_strdup(inet_ntoa(g_data.rcv.sin_addr));
@@ -81,4 +84,32 @@ struct timeval	timeval_sub(struct timeval *a, struct timeval *b)
 	res.tv_sec = a->tv_sec - b->tv_sec;
 	res.tv_usec = a->tv_usec - b->tv_usec;
 	return (res);
+}
+
+void	wait_time(double time_sec)
+{
+	struct timeval		init;
+	struct timeval		goal;
+	int					sec = (int)time_sec;
+
+	save_time(&init);
+	goal = init;
+	goal.tv_sec += sec;
+	goal.tv_usec += (time_sec - sec) * USEC;
+	if (goal.tv_usec >= USEC)
+	{
+		goal.tv_sec += 1;
+		goal.tv_usec -= USEC;
+	}
+	while (1)
+	{
+		save_time(&init);
+		if (goal.tv_sec - init.tv_sec <= 0)
+		{
+			if (goal.tv_sec - init.tv_sec < 0)
+				break;
+			else if (goal.tv_usec - init.tv_usec <= 0)
+				break;
+		}
+	}
 }
