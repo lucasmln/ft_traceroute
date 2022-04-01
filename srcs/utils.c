@@ -18,7 +18,8 @@ void	print_usage()
 	printf("\t-h --help\t\tDisplay usage\n");
 	printf("\t-f first_ttl\t\tStart from the first_ttl hop (instead from 1)\n");
 	printf("\t-I --icmp\t\tUse ICMP ECHO for tracerouting\n");
-	printf("\t-m max_ttl\t\tSet the max number of hops (max TTL to be reached).\n\t\t\t\tDefault is 30\n");
+	printf("\t-m max_ttl\t\tSet the max number of hops (max TTL to be reached). Default is 30\n");
+	printf("\t-n\t\t\tDo no try to map IP addresses with host name when displaying them\n");
 	printf("\t-p port\t\t\tSet the destination port to use. It is either initial udp\n");
 	printf("\t\t\t\tport value for %cdefault%c method(incremented by each probe,\n", '"', '"');
 	printf("\t\t\t\tdefault is 33434), or initial seq for %cicmp%c (incremented as well,\n", '"', '"');
