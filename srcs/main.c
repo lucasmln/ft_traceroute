@@ -50,6 +50,17 @@ void	loop_traceroute()
 		g_data.ttl++;
 	}
 }
+
+void	free_traceroute()
+{
+	if (g_data.addr_ip)
+		free(g_data.addr_ip);
+	if (g_data.last_ip)
+		free(g_data.last_ip);
+	close(g_data.icmp_sock);
+	close(g_data.raw_sock);
+}
+
 void	init()
 {
 	g_data.pid = getpid();
@@ -62,15 +73,6 @@ void	init()
 	g_data.nb_probes = MAX_ROUND;
 	g_data.default_port = UDP_PORT;
 	g_data.last_ip = NULL;
-}
-
-void	print_traceroute_hdr(char *dst, char *dns_dst, int hops, long unsigned int pck_size)
-{
-	if (g_data.flags & FLAGS_I)
-		pck_size = pck_size > sizeof(struct iphdr) + sizeof(struct icmphdr) ? pck_size : sizeof(struct iphdr) + sizeof(struct icmphdr);
-	else
-		pck_size = pck_size > sizeof(struct iphdr) + sizeof(struct udphdr) ? pck_size : sizeof(struct udphdr) + sizeof(struct icmphdr);
-	printf("ft_traceroute to %s (%s), %d hops max, %ld byte packets\n", dst, dns_dst, hops, pck_size);
 }
 
 int		main(int ac, char **av)

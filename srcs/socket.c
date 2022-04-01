@@ -54,3 +54,12 @@ void	dns_lookup(const char *dest)
 	freeaddrinfo(res);
 }
 
+char	*reverse_dns_lookup(struct sockaddr_in add)
+{
+	char	buf[65];
+
+	if (getnameinfo((struct sockaddr *)&add, sizeof(struct sockaddr_in),
+		buf, sizeof(buf), NULL, 0, NI_NAMEREQD) == 0)
+		return (ft_strdup(buf));
+	return (NULL);
+}

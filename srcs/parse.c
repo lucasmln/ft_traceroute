@@ -24,69 +24,14 @@ void	parse(int ac, char **av, int *addr_pos)
 	check_flags();
 }
 
-int		get_packet_len(char **av, int ac, int *i)
-{
-	if (*i + 1 >= ac)
-		return (60);
-	(*i)++;
-	return (ft_atoi(av[*i]));
-}
-
-void	check_flags()
-{
-	int		error;
-
-	error = 0;
-	if (g_data.flags & FLAGS_W && g_data.wait_recv < 0 && ++error)
-		printf("bad wait specifications `%.2lf` used\n", g_data.wait_recv);
-	else if (g_data.flags & FLAGS_Z && g_data.wait_probes < 0 && ++error)
-		printf("bad sendtime `%.2lf' specified\n", g_data.wait_probes);
-	else if (g_data.flags & FLAGS_Q && (g_data.nb_probes > 10 || g_data.nb_probes < 0) && ++error)
-		printf("no more than 10 probes per hop\n");
-	else if (g_data.flags & FLAGS_M && (g_data.ttl_max > 255 || g_data.ttl_max < 0) && ++error)
-		printf("max hops cannot be more than 255\n");
-	else if (g_data.flags & FLAGS_F && (g_data.ttl > g_data.ttl_max || g_data.ttl < 0) && ++error)
-		printf("first hop out of range\n");
-
-	if (error)
-	{
-		free_traceroute();
-		exit(1);
-	}
-	g_data.wait_probes = g_data.wait_probes >= 10 ? g_data.wait_probes / 1000 : g_data.wait_probes;
-	if (g_data.flags & FLAGS_I && g_data.flags & FLAGS_P)
-		g_data.seq = g_data.seq;
-}
-
-char	get_flag(char *flag)
-{
-	if (ft_strlen(flag) <= 1)
-		return (0);
-	return (flag[1]);
-}
-
-void	set_flag_dvalue(double *dst, int pos, char **av, int ac)
-{
-	if (pos >= ac || !ft_isdigit(av[pos][0]))
-		*dst = -1;
-	else
-		*dst = atof(av[pos]);
-}
-
-void	set_flag_ivalue(int *dst, int pos, char **av, int ac)
-{
-	if (pos >= ac)
-		*dst = -1;
-	else
-		*dst = ft_atoi(av[pos]);
-}
-
-
 void	get_options(int ac, char **av, int *i)
 {
-	(void)ac;
 	switch (get_flag(av[*i]))
 	{
+		case 'h':
+			print_usage();
+			exit(0);
+			break;
 		case 'f':
 			g_data.flags = g_data.flags | FLAGS_F;
 			set_flag_ivalue(&g_data.ttl, *i + 1, av, ac);
@@ -125,6 +70,75 @@ void	get_options(int ac, char **av, int *i)
 			break;
 		default:
 			printf("Bad option `%s` (argc %d)\n", av[*i], *i);
+			exit(2);
 			break;
 	}
 }
+
+int		get_packet_len(char **av, int ac, int *i)
+{
+	if (*i + 1 >= ac)
+		return (60);
+	(*i)++;
+	return (ft_atoi(av[*i]));
+}
+
+void	check_flags()
+{
+	int		error;
+
+	error = 0;
+	if (g_data.flags & FLAGS_W && g_data.wait_recv < 0 && ++error)
+		printf("bad wait specifications `%.2lf` used\n", g_data.wait_recv);
+	else if (g_data.flags & FLAGS_Z && g_data.wait_probes < 0 && ++error)
+		printf("bad sendtime `%.2lf' specified\n", g_data.wait_probes);
+	else if (g_data.flags & FLAGS_Q && (g_data.nb_probes > 10 || g_data.nb_probes < 0) && ++error)
+		printf("no more than 10 probes per hop\n");
+	else if (g_data.flags & FLAGS_M && (g_data.ttl_max > 255 || g_data.ttl_max < 0) && ++error)
+		printf("max hops cannot be more than 255\n");
+	else if (g_data.flags & FLAGS_F && (g_data.ttl > g_data.ttl_max || g_data.ttl < 0) && ++error)
+		printf("first hop out of range\n");
+	else if (g_data.packet_len > MTU && ++error)
+		printf("too big packet_len %d specified. MTU is %d\n", g_data.packet_len, MTU);
+
+	if (error)
+	{
+		free_traceroute();
+		exit(1);
+	}
+	g_data.wait_probes = g_data.wait_probes >= 10 ? g_data.wait_probes / 1000 : g_data.wait_probes;
+	if (g_data.flags & FLAGS_I && g_data.flags & FLAGS_P)
+		g_data.seq = g_data.seq;
+}
+
+char	get_flag(char *flag)
+{
+	if (ft_strlen(flag) <= 1)
+		return (0);
+	if (flag[1] == '-')
+	{
+		if (!ft_strncmp(flag, "--icmp", ft_strlen("--icmp")) && ft_strlen("--icmp") == ft_strlen(flag))
+			return ('I');
+		else if (!ft_strncmp(flag, "--help", ft_strlen("--help")) && ft_strlen("--help") == ft_strlen(flag))
+			return ('h');
+	}
+	return (flag[1]);
+}
+
+void	set_flag_dvalue(double *dst, int pos, char **av, int ac)
+{
+	if (pos >= ac || !ft_isdigit(av[pos][0]))
+		*dst = -1;
+	else
+		*dst = atof(av[pos]);
+}
+
+void	set_flag_ivalue(int *dst, int pos, char **av, int ac)
+{
+	if (pos >= ac)
+		*dst = -1;
+	else
+		*dst = ft_atoi(av[pos]);
+}
+
+

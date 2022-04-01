@@ -1,27 +1,34 @@
 #include "../inc/ft_traceroute.h"
 
+void	print_traceroute_hdr(char *dst, char *dns_dst, int hops, long unsigned int pck_size)
+{
+	if (g_data.flags & FLAGS_I)
+		pck_size = pck_size > sizeof(struct iphdr) + sizeof(struct icmphdr) ? pck_size : sizeof(struct iphdr) + sizeof(struct icmphdr);
+	else
+		pck_size = pck_size > sizeof(struct iphdr) + sizeof(struct udphdr) ? pck_size : sizeof(struct udphdr) + sizeof(struct iphdr);
+	printf("ft_traceroute to %s (%s), %d hops max, %ld byte packets\n", dst, dns_dst, hops, pck_size);
+}
+
 void	print_usage()
 {
-	printf("Usage: ft_traceroute: destination\n");
-}
-
-void	free_traceroute()
-{
-	if (g_data.addr_ip)
-		free(g_data.addr_ip);
-	if (g_data.last_ip)
-		free(g_data.last_ip);
-	close(g_data.icmp_sock);
-	close(g_data.raw_sock);
-}
-
-void	save_time(struct timeval *time)
-{
-	if (gettimeofday(time, NULL))
-	{
-		free_traceroute();
-		exit(1);
-	}
+	printf("Usage:\n");
+	printf("\tft_traceroute: [ -hI ] [ -f first_ttl ] [ -m max_ttl ] [ -p port ] ");
+	printf("[ -q nqueries ] [ -w waittime ] [ -z sendwait ] destination [ packet_len ]\n");
+	printf("Options:\n");
+	printf("\t-h --help\t\tDisplay usage\n");
+	printf("\t-f first_ttl\t\tStart from the first_ttl hop (instead from 1)\n");
+	printf("\t-I --icmp\t\tUse ICMP ECHO for tracerouting\n");
+	printf("\t-m max_ttl\t\tSet the max number of hops (max TTL to be reached).\n\t\t\t\tDefault is 30\n");
+	printf("\t-p port\t\t\tSet the destination port to use. It is either initial udp\n");
+	printf("\t\t\t\tport value for %cdefault%c method(incremented by each probe,\n", '"', '"');
+	printf("\t\t\t\tdefault is 33434), or initial seq for %cicmp%c (incremented as well,\n", '"', '"');
+	printf("\t\t\t\tdefault from 1), or some constant destination port for other methods\n");
+	printf("\t\t\t\t(with default of 80 for%ctcp%c 53 for %cudp%c, etc.)\n", '"', '"', '"', '"');
+	printf("\t-w MAX\t\t\tWait for a probe no more than MAX\n");
+	printf("\t-q nqueries\t\tSet the number of probes per each hop. Default is 3\n");
+	printf("\t-z sendwait\t\tMinimal time interval between probes (default 0).\n");
+	printf("\t\t\t\tIf the value is more than 10, then it specifies a number in ms,\n");
+	printf("\t\t\t\telse it is a number in sec (float point values allowed)\n");
 }
 
 void	print_packet(int round, int ttl, struct timeval time, int code)
@@ -67,49 +74,22 @@ void	print_packet(int round, int ttl, struct timeval time, int code)
 	free(reverse_addr);
 }
 
-char	*reverse_dns_lookup(struct sockaddr_in add)
+unsigned short	checksum(void *address, int len)
 {
-	char	buf[65];
+	unsigned short	*buff;
+	unsigned long	sum;
 
-	if (getnameinfo((struct sockaddr *)&add, sizeof(struct sockaddr_in),
-		buf, sizeof(buf), NULL, 0, NI_NAMEREQD) == 0)
-		return (ft_strdup(buf));
-	return (NULL);
-}
-
-struct timeval	timeval_sub(struct timeval *a, struct timeval *b)
-{
-	struct timeval	res;
-
-	res.tv_sec = a->tv_sec - b->tv_sec;
-	res.tv_usec = a->tv_usec - b->tv_usec;
-	return (res);
-}
-
-void	wait_time(double time_sec)
-{
-	struct timeval		init;
-	struct timeval		goal;
-	int					sec = (int)time_sec;
-
-	save_time(&init);
-	goal = init;
-	goal.tv_sec += sec;
-	goal.tv_usec += (time_sec - sec) * USEC;
-	if (goal.tv_usec >= USEC)
+	buff = (unsigned short *)address;
+	sum = 0;
+	while (len > 1)
 	{
-		goal.tv_sec += 1;
-		goal.tv_usec -= USEC;
+		sum += *buff;
+		buff++;
+		len -= sizeof(unsigned short);
 	}
-	while (1)
-	{
-		save_time(&init);
-		if (goal.tv_sec - init.tv_sec <= 0)
-		{
-			if (goal.tv_sec - init.tv_sec < 0)
-				break;
-			else if (goal.tv_usec - init.tv_usec <= 0)
-				break;
-		}
-	}
+	if (len)
+		sum += *(unsigned char *)buff;
+	sum = (sum >> 16) + (sum & 0xFFFF);
+	sum += (sum >> 16);
+	return ((unsigned short)~sum);
 }
