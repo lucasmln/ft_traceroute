@@ -6,7 +6,8 @@ Make && sudo ./ft_traceroute [-I] [-f first_ttl] [-m max_ttl] [-p port] [-q nque
 ```
 ## Options :
 
-* `[-I]` Use protocol ICMP to send packet
+* `[-h --help]` Display usage and options
+* `[-I --icmp]` Use protocol ICMP to send packet
 * `[-f first_ttl]` Set the first ttl (default 1)
 * `[-m max_ttl]` Set the maximum ttl (default 30)
 * `[-p port]`	For UDP tracing, specifies the destination port base traceroute will use (the destination port number will be incremented by each probe)
