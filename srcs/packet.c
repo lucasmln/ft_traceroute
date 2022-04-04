@@ -109,6 +109,11 @@ int		check_icmp_packet(char *buf, struct sockaddr_in *from, struct ip *ip, struc
 	if (!((icmp->icmp_type == ICMP_TIMXCEED && icmp->icmp_code == ICMP_TIMXCEED_INTRANS) ||
 		icmp->icmp_type == ICMP_UNREACH || (g_data.flags & FLAGS_I && icmp->icmp_code == ICMP_ECHOREPLY)))
 		return (rcv_packet(time));
+	if (icmp->icmp_type == ICMP_UNREACH && icmp->icmp_code != ICMP_PORT_UNREACH)
+	{
+		g_data.unreach_error = icmp->icmp_code;
+		return (UNREACH_CODE);
+	}
 	if (icmp->icmp_type == ICMP_TIMXCEED)
 	{
 		tmp = (struct icmp *)(icmp + 1);
