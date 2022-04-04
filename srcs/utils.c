@@ -32,6 +32,29 @@ void	print_usage()
 	printf("\t\t\t\telse it is a number in sec (float point values allowed)\n");
 }
 
+char	*get_unreach_value(int code)
+{
+	switch (code) {
+		case ICMP_NET_UNREACH:
+			return ("N");
+		case ICMP_HOST_UNREACH:
+			return ("H");
+		case ICMP_PROT_UNREACH:
+			return ("P");
+		case ICMP_FRAG_NEEDED:
+			return ("F");
+		case ICMP_SR_FAILED:
+			return ("S");
+		case ICMP_PREC_VIOLATION:
+			return ("V");
+		case ICMP_PREC_CUTOFF:
+			return ("C");
+		default:
+			break;
+	}
+	return ("");
+}
+
 void	print_packet(int round, int ttl, struct timeval time, int code)
 {
 	double	time_value;
@@ -63,6 +86,8 @@ void	print_packet(int round, int ttl, struct timeval time, int code)
 			printf(" %.3lf ms", time_value);
 		error = 0;
 	}
+	if (code != ERROR_CODE && g_data.unreach_error != ICMP_PORT_UNREACH)
+		printf(" !%s", get_unreach_value(g_data.unreach_error));
 	if (round == 2)
 		printf("\n");
 	if (code != ERROR_CODE)

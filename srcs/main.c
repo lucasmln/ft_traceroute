@@ -10,7 +10,7 @@ void	loop_traceroute()
 	struct timeval	recv_time;
 
 	end = false;
-	while (g_data.ttl <= g_data.ttl_max && end == false)
+	while (g_data.ttl <= g_data.ttl_max && end == false && g_data.unreach_error == ICMP_PORT_UNREACH)
 	{
 		for (int round = 0; round < g_data.nb_probes; round++)
 		{
@@ -33,14 +33,8 @@ void	loop_traceroute()
 				ret = rcv_packet(&recv_time);
 				save_time(&recv_time);
 				if (ret == SUCCESS_CODE)
-				{
-					print_packet(round, g_data.ttl, timeval_sub(&recv_time, &send_time), ret);
 					end = true;
-				}
-				else if (ret == ICMP_TIMXCEED)
-					print_packet(round, g_data.ttl, timeval_sub(&recv_time, &send_time), ret);
-				if (ret == ERROR_CODE)
-					print_packet(round, g_data.ttl, timeval_sub(&recv_time, &send_time), ret);
+				print_packet(round, g_data.ttl, timeval_sub(&recv_time, &send_time), ret);
 			}
 			//fflush(stdout);
 			g_data.seq++;
@@ -73,6 +67,7 @@ void	init()
 	g_data.nb_probes = MAX_ROUND;
 	g_data.default_port = UDP_PORT;
 	g_data.last_ip = NULL;
+	g_data.unreach_error = ICMP_PORT_UNREACH;
 }
 
 int		main(int ac, char **av)

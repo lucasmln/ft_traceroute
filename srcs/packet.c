@@ -116,15 +116,11 @@ int		check_icmp_packet(char *buf, struct sockaddr_in *from, struct ip *ip, struc
 			return (rcv_packet(time));
 		return (ICMP_TIMXCEED);
 	}
-	if (g_data.flags & FLAGS_I)
-	{
-		if (BSWAP16(g_data.pid) != icmp->icmp_id && BSWAP16(g_data.seq) != icmp->icmp_seq)
-			return (rcv_packet(time));
-	}
+	if (BSWAP16(g_data.pid) != icmp->icmp_id && BSWAP16(g_data.seq) != icmp->icmp_seq)
+		return (rcv_packet(time));
 	if (ft_strncmp(inet_ntoa(from->sin_addr), g_data.addr_ip, ft_strlen(g_data.addr_ip)) != 0)
 		return (ERROR_CODE);
 	return (SUCCESS_CODE);
-
 }
 
 int		check_udp_packet(char *buf, struct sockaddr_in *from, struct ip *ip, struct timeval *time)
@@ -140,6 +136,11 @@ int		check_udp_packet(char *buf, struct sockaddr_in *from, struct ip *ip, struct
 	if (!((icmp->icmp_type == ICMP_TIMXCEED && icmp->icmp_code == ICMP_TIMXCEED_INTRANS) ||
 		icmp->icmp_type == ICMP_UNREACH))
 		return (rcv_packet(time));
+	if (icmp->icmp_type == ICMP_UNREACH && icmp->icmp_code != ICMP_PORT_UNREACH)
+	{
+		g_data.unreach_error = icmp->icmp_code;
+		return (UNREACH_CODE);
+	}
 	if (ip_icmp->ip_p != IPPROTO_UDP)
 		return (ERROR_CODE);
 	udp = (struct udphdr *)((char *)ip_icmp + (ip_icmp->ip_hl << 2));
@@ -152,7 +153,6 @@ int		check_udp_packet(char *buf, struct sockaddr_in *from, struct ip *ip, struct
 	if (ft_strncmp(inet_ntoa(from->sin_addr), g_data.addr_ip, ft_strlen(g_data.addr_ip)) != 0)
 		return (rcv_packet(time));
 	return (SUCCESS_CODE);
-
 }
 
 /*

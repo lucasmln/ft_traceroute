@@ -24,6 +24,7 @@
 
 # define SUCCESS_CODE 0
 # define ERROR_CODE 1
+# define UNREACH_CODE 2
 
 # define BSWAP16(x)			((__uint16_t) ((((x) >> 8) & 0xff) | (((x) & 0xff) << 8)))
 
@@ -68,6 +69,7 @@ typedef struct		ft_traceroute_s
 	int					packet_len;
 	int					flags;
 	unsigned int		default_port;
+	int					unreach_error;
 	double				wait_recv;
 	double				wait_probes;
 }					ft_traceroute_t;
